@@ -107,11 +107,15 @@ def venues():
   def get_venues(city,state):
       vi = Venue.query.filter(Venue.state==state,Venue.city==city)
       lista = []
+      show_count = []
       for i in vi:
         ndict = {}
         ndict['id'] = i.id
         ndict['name'] = i.name
-        ndict['num_upcoming_shows'] = 0
+        shows = Show.query.filter_by(venue_id=i.id)
+        for i in shows:
+          show_count.append(i.id)
+        ndict['num_upcoming_shows'] = len(show_count)
         lista.append(ndict)
       return lista
 
@@ -130,11 +134,6 @@ def venues():
    i['venues'] = get_venues(i['city'],i['state'])
    print(i['venues'])
  
-
-
-  # TODO: replace with real venues data.
-  #       num_shows should be aggregated based on number of upcoming shows per venue.
-
   return render_template('pages/venues.html', areas=location);
 
 @app.route('/venues/search', methods=['POST'])
@@ -170,8 +169,6 @@ def show_venue(venue_id):
     else:
       upcoming_shows.append(ndict)
 
-
-
   data0={
     "id": venue_id,
     "name": venues.name,
@@ -190,9 +187,6 @@ def show_venue(venue_id):
     "past_shows_count": len(past_shows),
     "upcoming_shows_count": len(upcoming_shows),
   }
-
-  # shows the venue page with the given venue_id
-  # TODO: replace with real venue data from the venues table, using venue_id
 
   data = list(filter(lambda d: d['id'] == venue_id, [data0]))[0]
   return render_template('pages/show_venue.html', venue=data)
@@ -298,8 +292,6 @@ def show_artist(artist_id):
       past_shows.append(ndict)
     else:
       upcoming_shows.append(ndict)
-  # shows the venue page with the given venue_id
-  # TODO: replace with real venue data from the venues table, using venue_id
 
   data4={
     "id": artist.id,
@@ -310,8 +302,8 @@ def show_artist(artist_id):
     "phone": artist.phone,
     "website": artist.website, 
     "facebook_link": artist.facebook_link,
-    "seeking_venue": True, 
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
+    "seeking_venue": True, #incluir no banco
+    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!", # incluir no banco
     "image_link": artist.image_link, 
     "past_shows": past_shows,
     "upcoming_shows": upcoming_shows,
@@ -327,6 +319,22 @@ def show_artist(artist_id):
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   form = ArtistForm()
+  artist = Artist.query.get(artist_id)
+
+  artist2={
+    "id": artist_id,
+    "name": artist.name,
+    "genres": artist.genres.split(','),
+    "city": artist.city,
+    "state": artist.state,
+    "phone": artist.phone,
+    "website": artist.website,
+    "facebook_link":artist.facebook_link,
+    "seeking_venue": True,
+    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
+    "image_link": artist.image_link
+  }
+
   artist={
     "id": 4,
     "name": "Guns N Petals",
@@ -341,7 +349,7 @@ def edit_artist(artist_id):
     "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
   }
   # TODO: populate form with fields from artist with ID <artist_id>
-  return render_template('forms/edit_artist.html', form=form, artist=artist)
+  return render_template('forms/edit_artist.html', form=form, artist=artist2)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
@@ -353,25 +361,29 @@ def edit_artist_submission(artist_id):
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
   form = VenueForm()
-  venue={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
+  venue = Venue.query.get(venue_id)
+
+  venue2={
+    "id": venue_id,
+    "name": venue.name,
+    "genres": venue.genres.split(','),
+    "address": venue.address,
+    "city": venue.city,
+    "state": venue.state,
+    "phone": venue.phone,
+    "website": venue.website,
+    "facebook_link": venue.facebook_link,
     "seeking_talent": True,
     "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
+    "image_link": venue.image_link
   }
+
   # TODO: populate form with values from venue with ID <venue_id>
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
+  
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
   return redirect(url_for('show_venue', venue_id=venue_id))
@@ -396,7 +408,7 @@ def create_artist_submission():
                    image_link=resposta['img_link'],
                    facebook_link=resposta['facebook_link'])
   print(nartist.name)
-  flash('Artist ' + resposta['name'] + ' was successfully listed!')
+
   try:
     db.session.add(nartist)
     db.session.commit()
@@ -404,15 +416,12 @@ def create_artist_submission():
     db.session.rollback()
   finally:
     db.session.close()
+    flash('Artist ' + resposta['name'] + ' was successfully listed!')
   return render_template('pages/home.html')
 
-  
-  # on successful db insert, flash success
    
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-  
-
   # called upon submitting the new artist listing form
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
@@ -423,14 +432,8 @@ def create_artist_submission():
 
 @app.route('/shows')
 def shows():
-  # displays list of shows at /shows
-  # TODO: replace with real venues data.
-  #       num_shows should be aggregated based on number of upcoming shows per venue.
-
   shows = Show.query.all()
-
   data0 = []
-
   for show in shows:
     ndict={}
     ndict['venue_id'] = show.venue_id
@@ -442,55 +445,6 @@ def shows():
     ndict['artist_image_link'] = artist.image_link
     ndict['start_time'] = str(show.start_time)
     data0.append(ndict)
-
-
-
-
-
-
-
-
-
-
-
-
-
-  data=[{
-    "venue_id": 1,
-    "venue_name": "The Musical Hop",
-    "artist_id": 4,
-    "artist_name": "Guns N Petals",
-    "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-    "start_time": "2019-05-21T21:30:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 5,
-    "artist_name": "Matt Quevedo",
-    "artist_image_link": "https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
-    "start_time": "2019-06-15T23:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-01T20:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-08T20:00:00.000Z"
-  }, {
-    "venue_id": 3,
-    "venue_name": "Park Square Live Music & Coffee",
-    "artist_id": 6,
-    "artist_name": "The Wild Sax Band",
-    "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "start_time": "2035-04-15T20:00:00.000Z"
-  }]
   return render_template('pages/shows.html', shows=data0)
 
 @app.route('/shows/create')
