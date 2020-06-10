@@ -1,35 +1,5 @@
-let botao = document.querySelector(".botao");
-let genres = document.querySelector("#genres").selectedOptions
+let botao = $(".botao");
+let artista = new Artist()
+botao.click(artista.newartist())
 
-function generos(){
-    gen = ""
-    
-    for(i=0;i<genres.length;i++){
-        gen+= genres[i].value + ","
-    }
-    return gen.slice(0,gen.length-1)
-}
-
-
-function envio(){
-    let dados  = {
-        "name"  :  document.querySelector("#name").value,
-        "city" :  document.querySelector("#city").value,
-        "state"  :  document.querySelector("#state").value,
-        "phone" :  document.querySelector("#phone").value,
-        "genres"  :  generos(),
-        "facebook_link": document.querySelector("#facebook_link").value,
-        "img_link": document.querySelector("#img_link").value,
-        "website": document.querySelector("#website").value,
-    }
-
-    $.post("/artists/create",dados,()=>{
-        console.log("dados enviados")
-    })
-
-}
-
-
-
-botao.click(envio())
 

@@ -2,31 +2,36 @@
 {% block title %}Edit Venue{% endblock %}
 {% block content %}
   <div class="form-wrapper">
-    <form class="form" method="post" action="/venues/{{venue.id}}/edit">
+    <form  method="post"  class="form">
       <h3 class="form-heading">Edit venue <em>{{ venue.name }}</em> <a href="{{ url_for('index') }}" title="Back to homepage"><i class="fa fa-home pull-right"></i></a></h3>
+      <div class="form-group">
+          <label for="name">Name</label>
+          {{ form.name(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true, value=venue.name) }}
+      </div>
+      
       <div class="form-group">
         <label>City & State</label>
       <div class="form-inline">
       <div class="form-group">
               {{ form.city(class_ = 'form-control', placeholder='City', autofocus = true, value=venue.city ) }}
       </div>
-            <div class="form-group">
-              {{ form.state(class_ = 'form-control', placeholder='State', autofocus = true , value=venue.state) }}
-            </div>
+      <div class="form-group">
+        {{ form.state(class_ = 'form-control', placeholder='State', autofocus = true , value=venue.state) }}
+      </div>
       </div>
       </div>
       <div class="form-group">
           <label for="phone">Phone</label>
-          {{ form.phone(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true, value=artist.phone) }}
+          {{ form.phone(class_ = 'form-control', placeholder='xxx-xxx-xxxx', autofocus = true, value=venue.phone) }}
       </div>
       <div class="form-group">
         <label for="genres">Genres</label>
         <small>Ctrl+Click to select multiple</small>
-        {{ form.genres(class_ = 'form-control', placeholder="Genres, separated by commas", autofocus = true) }}
+        {{ form.genres(class_ = 'form-control', placeholder="Genres, separated by commas", autofocus = true, data=venue.genres) }}
       </div>
       <div class="form-group">
           <label for="form.img_link">Image Link</label>
-          {{ form.img_link(class_ = 'form-control', placeholder='http://', autofocus = true , value = artist.image_link) }}
+          {{ form.img_link(class_ = 'form-control', placeholder='http://', autofocus = true , value = venue.image_link) }}
       </div>
       <div class="form-group">
           <label for="form.facebook_link">Facebook Link</label>
@@ -37,8 +42,9 @@
           {{ form.website(class_ = 'form-control', placeholder='http://', autofocus = true , value = venue.website ) }}
       </div>
   
-      <input type="submit" value="Edit Venue" class="btn btn-primary btn-lg btn-block">
+      <input type="submit" value="Edit Venue" class="btn btn-primary btn-lg btn-block" data={{venue.id}}>
     </form>
   </div>
   <script src="/static/js/edit_venue.js"></script>
 {% endblock %}
+
