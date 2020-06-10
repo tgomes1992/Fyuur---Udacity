@@ -233,14 +233,20 @@ def create_venue_submission():
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
   return redirect(url_for('index'))
 
-@app.route('/venues/<venue_id>', methods=['DELETE'])
+@app.route('/venues/<venue_id>/delete', methods=['POST'])
 def delete_venue(venue_id):
-  # TODO: Complete this endpoint for taking a venue_id, and using
-  # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+  print(venue_id)
+  venue = Venue.query.get(venue_id)
+  show = Show.query.filter_by(venue_id=venue_id)
+  for i in show:
+    db.session.delete(i)
+  db.session.delete(venue)
+  db.session.commit()
+  flash('Venue ' + resposta['name'] + ' was successfuly deleted')
 
-  # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-  # clicking that button delete it from the db then redirect the user to the homepage
-  return None
+  return redirect(url_for('index'))
+  
+  
 
 #  Artists
 #  ----------------------------------------------------------------
@@ -302,7 +308,7 @@ def show_artist(artist_id):
       upcoming_shows.append(ndict)
 
   data4={
-    "id": artist.id,
+    "id": id,
     "name": artist.name,
     "genres": artist.genres.split(","),
     "city": artist.city, 
@@ -348,17 +354,35 @@ def edit_artist(artist_id):
 def edit_artist_submission(artist_id):
   artista = Artist.query.get(artist_id)
   resposta = request.values
-  print(resposta.getlist("genres"))
+  print(resposta['img_link'])
   artista.name = resposta['name']
   artista.city = resposta['city']
   artista.state = resposta['state']
   artista.phone = resposta['phone']
   artista.genres = ",".join(resposta.getlist("genres"))
-  artista.img_link = resposta['img_link']
+  artista.image_link = resposta['img_link']
   artista.facebook_link = resposta['facebook_link']
   artista.website = resposta['website']
   db.session.commit()
   return redirect(url_for('show_artist', artist_id=artist_id))
+
+@app.route("/artists/<int:artist_id>/delete", methods=['POST'])
+def delete_artist(artist_id):
+  print(artist_id)
+  artista = Artist.query.get(artist_id)
+  show = Show.query.filter_by(artist_id=artist_id)
+  for i in show:
+    db.session.delete(i)
+  db.session.delete(artista)
+  db.session.commit()
+  flash('Venue ' + artista.name + ' was successfuly deleted')
+  return redirect(url_for("index"))
+
+  
+    
+
+
+
     
  
 

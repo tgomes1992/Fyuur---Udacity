@@ -6,6 +6,12 @@
 		<h1 class="monospace">
 			{{ venue.name }}
 		</h1>
+		<a href="/venues/{{venue.id}}/edit"><button id="edit">Edit</button></a>
+		<a href="/">
+			<button type="button" value="Delete" id="delete" data="{{venue.id}}">Delete</button>
+		</a>
+		
+		
 		<p class="subtitle">
 			ID: {{ venue.id }}
 		</p>
@@ -74,6 +80,20 @@
 		{% endfor %}
 	</div>
 </section>
+<script>
+
+let btn = $("#delete")
+let id = btn.attr("data")
+
+
+btn.click(()=>{
+	console.log("fui clicado")
+	$.post('/venues/'+id+'/delete',id,()=>{
+		console.log("dados enviados")
+	})
+})
+
+</script>
 
 {% endblock %}
 
